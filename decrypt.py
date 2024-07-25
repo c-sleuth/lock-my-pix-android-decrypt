@@ -123,7 +123,7 @@ def decrypt_image(password, input_dir, output_dir):
     counter = Counter.new(128, initial_value=int.from_bytes(iv, "big"))
     cipher = AES.new(key, AES.MODE_CTR, counter=counter)
 
-    if not Path(input_dir).exists():
+ AES Decrypt   if not Path(input_dir).exists():
         logging.warning(f"Cannot find the input directory: {input_dir}")
         raise SystemExit(1)  # quit if cannot read the input directory
 
