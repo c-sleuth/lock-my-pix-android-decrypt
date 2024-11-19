@@ -19,7 +19,7 @@ logging.basicConfig(
 )
 
 
-# this is likley not a full list of the extensions possible
+# this is likely not a full list of the extensions possible
 extension_map = {
     ".vp3": ".mp4",
     ".vo1": ".webm",
@@ -34,9 +34,9 @@ extension_map = {
     ".v6m": ".h264",
     ".6zu": ".jpg",
     ".tr7": ".gif",
-    ".p50": ".png",
+    ".p5o": ".png",
     ".8ur": ".bmp",
-    ".33t": ".tiff",  # this extenion could also be .tif
+    ".33t": ".tiff",  # this extension could also be .tif
     ".20i": ".webp",
     ".v93": ".heic",
     ".v91": ".flv",  # this key is linked to .flv and .eps
@@ -99,43 +99,39 @@ def write_to_output(output_dir, filename, dec_data):
         logging.warning(f"File {filename} has an unknown extension")
 
     if not Path(output_dir).exists():
-        logging.info(f"Making output directory: {output_dir}")
+        logging.info(f"Creating output directory: {output_dir}")
         os.mkdir(output_dir)
 
     with open(os.path.join(output_dir, filename), "wb") as f:
         f.write(dec_data)
-        logging.info(f"decrypted file {filename} written to {output_dir}")
+        logging.info(f"Decrypted file {filename} written to {output_dir}")
 
 
 def decrypt_image(password, input_dir, output_dir):
-
-    # the key is derived from the password hashed using SHA1
-    logging.info("Decryption Started")
+    logging.info("Decryption started")
     logging.info(f"Password: {password}")
     logging.info(f"Input directory: {input_dir}")
     logging.info(f"Output directory: {output_dir}")
 
     key = hashlib.sha1(password.encode()).digest()[:16]
-    iv = key  # iv is just the same as the key
-    logging.info(f"AES decryption Key: {key}")
+    iv = key  # IV is the same as the key
+    logging.info(f"AES key: {key}")
     logging.info(f"AES IV: {iv}")
 
-    counter = Counter.new(128, initial_value=int.from_bytes(iv, "big"))
-    cipher = AES.new(key, AES.MODE_CTR, counter=counter)
-
- AES Decrypt   if not Path(input_dir).exists():
-        logging.warning(f"Cannot find the input directory: {input_dir}")
-        raise SystemExit(1)  # quit if cannot read the input directory
-
-    password_check = test_password(input_dir, password)
-    if not password_check:
-        logging.warning("Password check failed, check logs for reason")
+    if not Path(input_dir).exists():
+        logging.warning(f"Input directory not found: {input_dir}")
         raise SystemExit(1)
 
     for file in os.listdir(input_dir):
         encrypted_file = os.fsdecode(file)
-        encrypted_path = os.path.join(input_dir, os.fsdecode(file))
-        with open(encrypted_path, "rb+") as enc_data:
+        encrypted_path = os.path.join(input_dir, encrypted_file)
+
+        # Create a new cipher object for each file
+        counter = Counter.new(128, initial_value=int.from_bytes(iv, "big"))
+        cipher = AES.new(key, AES.MODE_CTR, counter=counter)
+
+        logging.info(f"Processing file: {encrypted_file}")
+        with open(encrypted_path, "rb") as enc_data:
             dec_data = cipher.decrypt(enc_data.read())
             write_to_output(output_dir, encrypted_file, dec_data)
 
